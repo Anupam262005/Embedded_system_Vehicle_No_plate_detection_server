@@ -20,10 +20,22 @@ _BH = re.compile(r"^[0-9]{2}BH[0-9]{4}[A-Z]{1,2}$")
 
 
 def normalize_plate(text) -> str:
-    """Uppercase, keep only A-Z and 0-9 (FR-GW-8)."""
+    """Uppercase, keep only A-Z and 0-9 (FR-GW-8), and strip border frame noise."""
     if not isinstance(text, str):
         return ""
-    return re.sub(r"[^A-Z0-9]", "", text.upper())
+    clean = re.sub(r"[^A-Z0-9]", "", text.upper())
+    if is_indian_format(clean):
+        return clean
+    # Strip single trailing border artifact (e.g. HR26DK83371 -> HR26DK8337)
+    if len(clean) > 1 and is_indian_format(clean[:-1]):
+        return clean[:-1]
+    # Strip leading noise or HSRP 'IND' badge
+    for cand in (clean[3:] if clean.startswith("IND") else None,
+                 clean[:-3] if clean.endswith("IND") else None,
+                 clean[1:] if len(clean) > 1 else None):
+        if cand and is_indian_format(cand):
+            return cand
+    return clean
 
 
 def is_indian_format(plate: str) -> bool:

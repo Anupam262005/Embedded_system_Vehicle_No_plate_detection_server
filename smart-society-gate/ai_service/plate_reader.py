@@ -145,7 +145,7 @@ class PlateReader:
                 )[:3]
                 H, W = img.shape[:2]
                 for (x1, y1, x2, y2), conf in boxes:
-                    px, py = int((x2 - x1) * 0.04), int((y2 - y1) * 0.08)
+                    px, py = 0, int((y2 - y1) * 0.04)
                     x1, y1 = max(int(x1) - px, 0), max(int(y1) - py, 0)
                     x2, y2 = min(int(x2) + px, W), min(int(y2) + py, H)
                     text, mn, avg, reason = self._read_crop(img[y1:y2, x1:x2])
