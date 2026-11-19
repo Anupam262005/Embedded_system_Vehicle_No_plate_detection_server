@@ -48,6 +48,7 @@ class PlateReader:
         try:
             import torch
             torch.set_num_threads(1)
+            torch.set_grad_enabled(False)
         except Exception:
             pass
         cv2.setNumThreads(0)
@@ -70,9 +71,14 @@ class PlateReader:
         return "yolo+easyocr" if self.model else "ocr-only-fallback"
 
     def warm_up(self):
-        blank = np.full((480, 640, 3), 255, dtype=np.uint8)
-        cv2.putText(blank, "UP70AB1234", (60, 260), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 4)
-        self.read(blank)
+        try:
+            import gc
+            blank = np.full((480, 640, 3), 255, dtype=np.uint8)
+            cv2.putText(blank, "UP70AB1234", (60, 260), cv2.FONT_HERSHEY_SIMPLEX, 2, (0, 0, 0), 4)
+            self.read(blank)
+            gc.collect()
+        except Exception as exc:
+            print(f"[ai] warm_up skipped: {exc}")
 
     # ---------- OCR helpers ----------
     def _ocr_once(self, img):
