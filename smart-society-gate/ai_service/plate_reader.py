@@ -32,7 +32,7 @@ def valid_format(plate: str) -> bool:
 
 
 def strip_ind(plate: str) -> str:
-    """Remove HSRP 'IND' marking only if what remains is a valid plate."""
+    """Remove HSRP 'IND' marking and border line artifacts (e.g. trailing '1') only if what remains is a valid plate."""
     if valid_format(plate):
         return plate
     for cand in (plate[3:] if plate.startswith("IND") else None,
@@ -40,6 +40,12 @@ def strip_ind(plate: str) -> str:
                  plate.replace("IND", "", 1)):
         if cand and valid_format(cand):
             return cand
+    # Remove single trailing border artifact read as character (e.g. HR26DK83371 -> HR26DK8337)
+    if len(plate) > 1 and valid_format(plate[:-1]):
+        return plate[:-1]
+    # Remove single leading border artifact
+    if len(plate) > 1 and valid_format(plate[1:]):
+        return plate[1:]
     return plate
 
 
