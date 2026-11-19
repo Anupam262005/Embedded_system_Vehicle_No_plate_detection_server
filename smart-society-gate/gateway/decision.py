@@ -20,21 +20,30 @@ _BH = re.compile(r"^[0-9]{2}BH[0-9]{4}[A-Z]{1,2}$")
 
 
 def normalize_plate(text) -> str:
-    """Uppercase, keep only A-Z and 0-9 (FR-GW-8), and strip border frame noise."""
+    """Uppercase, keep only A-Z and 0-9 (FR-GW-8), and strip HSRP badge/border noise."""
     if not isinstance(text, str):
         return ""
     clean = re.sub(r"[^A-Z0-9]", "", text.upper())
     if is_indian_format(clean):
         return clean
-    # Strip single trailing border artifact (e.g. HR26DK83371 -> HR26DK8337)
-    if len(clean) > 1 and is_indian_format(clean[:-1]):
-        return clean[:-1]
-    # Strip leading noise or HSRP 'IND' badge
-    for cand in (clean[3:] if clean.startswith("IND") else None,
-                 clean[:-3] if clean.endswith("IND") else None,
-                 clean[1:] if len(clean) > 1 else None):
-        if cand and is_indian_format(cand):
-            return cand
+    candidates = []
+    # Strip trailing border artifacts (1 to 2 chars)
+    for i in range(1, min(3, len(clean))):
+        if is_indian_format(clean[:-i]):
+            candidates.append(clean[:-i])
+    # Strip leading badge (IND, YND, ID, 1ND, etc.) (1 to 4 chars)
+    for i in range(1, min(5, len(clean))):
+        if is_indian_format(clean[i:]):
+            candidates.append(clean[i:])
+    # Strip both
+    for left in range(1, 4):
+        for right in range(1, 3):
+            cand = clean[left:-right]
+            if is_indian_format(cand):
+                candidates.append(cand)
+    if candidates:
+        candidates.sort(key=lambda c: len(c), reverse=True)
+        return candidates[0]
     return clean
 
 

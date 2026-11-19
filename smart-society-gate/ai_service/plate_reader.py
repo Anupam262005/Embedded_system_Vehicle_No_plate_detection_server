@@ -32,20 +32,28 @@ def valid_format(plate: str) -> bool:
 
 
 def strip_ind(plate: str) -> str:
-    """Remove HSRP 'IND' marking and border line artifacts (e.g. trailing '1') only if what remains is a valid plate."""
+    """Remove HSRP badge noise (IND, YND, ID) and border artifacts if what remains is a valid plate."""
     if valid_format(plate):
         return plate
-    for cand in (plate[3:] if plate.startswith("IND") else None,
-                 plate[:-3] if plate.endswith("IND") else None,
-                 plate.replace("IND", "", 1)):
-        if cand and valid_format(cand):
-            return cand
-    # Remove single trailing border artifact read as character (e.g. HR26DK83371 -> HR26DK8337)
-    if len(plate) > 1 and valid_format(plate[:-1]):
-        return plate[:-1]
-    # Remove single leading border artifact
-    if len(plate) > 1 and valid_format(plate[1:]):
-        return plate[1:]
+    candidates = []
+    # Strip trailing border artifacts (1 to 2 chars)
+    for i in range(1, min(3, len(plate))):
+        if valid_format(plate[:-i]):
+            candidates.append(plate[:-i])
+    # Strip leading badge (IND, YND, ID, 1ND, etc.) (1 to 4 chars)
+    for i in range(1, min(5, len(plate))):
+        if valid_format(plate[i:]):
+            candidates.append(plate[i:])
+    # Strip both
+    for left in range(1, 4):
+        for right in range(1, 3):
+            cand = plate[left:-right]
+            if valid_format(cand):
+                candidates.append(cand)
+    if candidates:
+        # Prefer longest valid plate string (e.g. 10-character standard Indian plate)
+        candidates.sort(key=lambda c: len(c), reverse=True)
+        return candidates[0]
     return plate
 
 
