@@ -10,8 +10,6 @@ venv/
 __pycache__/
 *.py[cod]
 
-# YOLO trained weights
-ai_service/models/*.pt
 
 # ESP32 secrets
 esp32/SmartGateCam/secrets.h
