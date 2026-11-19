@@ -72,6 +72,16 @@ async def lifespan(_app):
 app = FastAPI(title="Smart Society Gate - Gateway", version="2.0", lifespan=lifespan)
 
 
+@app.get("/")
+def root():
+    return {
+        "status": "online",
+        "service": "Smart Society Gate - Gateway",
+        "health": "/health",
+        "docs": "/docs",
+    }
+
+
 @app.get("/health")
 def health():
     status = {"gateway": "ok", "ai": "down", "db": "down"}

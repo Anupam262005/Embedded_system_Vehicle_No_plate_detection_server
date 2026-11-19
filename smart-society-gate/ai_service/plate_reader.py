@@ -45,6 +45,12 @@ def strip_ind(plate: str) -> str:
 
 class PlateReader:
     def __init__(self, weights: str, det_conf_min: float = 0.25, gpu: bool = False):
+        try:
+            import torch
+            torch.set_num_threads(1)
+        except Exception:
+            pass
+        cv2.setNumThreads(0)
         import easyocr
 
         self.det_conf_min = det_conf_min
