@@ -149,6 +149,15 @@ class PlateReader:
                         "ocr_conf_avg": round(avg, 4),
                         "valid_format": valid_format(text), "reject_reason": reason,
                     })
+                # Fallback: if YOLO found no plate, test if the image itself is already a cropped plate photo
+                if not detections or not any(d.get("text") for d in detections):
+                    text, mn, avg, reason = self._read_crop(img)
+                    if text:
+                        detections.append({
+                            "bbox": [0, 0, W, H], "det_conf": 1.0, "text": text,
+                            "ocr_conf": round(mn, 4), "ocr_conf_avg": round(avg, 4),
+                            "valid_format": valid_format(text), "reject_reason": reason,
+                        })
             else:
                 text, mn, avg, reason = self._read_crop(img)
                 if text:
